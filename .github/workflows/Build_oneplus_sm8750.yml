@@ -19,18 +19,18 @@ on:
       keep_original_settings:
         description: "保持原内核名称及构建时间"
         required: false
-        default: true
+        default: false
         type: boolean
 
       custom_kernel_suffix:
         description: "✏️ 自定义内核名称(示例:-TG@qdykernel) - 仅在取消勾选'保持原设置'时有效"
         required: false
-        default: ''
+        default: '-android15-8-g0261dbe3cf7e-ab12786384-4k'
       
       custom_kernel_time:
         description: "⏰ 自定义构建时间(示例:Tue Dec 17 23:36:49 UTC 2024) - 仅在取消勾选'保持原设置'时有效"
         required: false
-        default: ''
+        default: 'Wed Dec 11 19:16:38 UTC 2024'
       
       enable_feature_x:
         description: "生成无KPM的AK3 - 取消则只有有KPM的AK3"
@@ -234,6 +234,13 @@ jobs:
            
            echo "完成"
 
+      - name: Merge BBR v3 into Kernel Source
+        run: |
+          cd kernel_workspace/kernel_platform
+          git remote add google-bbr https://github.com/google/bbr.git
+          git fetch google-bbr v3
+          git merge google-bbr/v3 --allow-unrelated-histories -m "Merge BBR v3 into kernel"
+      
       - name: 🔧 Cache HMBird patch (缓存HMBird补丁)
         uses: actions/cache@v3
         with:
