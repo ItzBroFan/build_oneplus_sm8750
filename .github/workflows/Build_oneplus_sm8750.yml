@@ -49,6 +49,12 @@ on:
         required: false
         default: true
         type: boolean
+
+      enable_feature_b:
+         description: "添加BBR控制算法"
+         required: false
+         default: false
+         type: boolean
       
        
 
@@ -58,6 +64,9 @@ jobs:
     name: Build_${{ github.event.inputs.REPO_MANIFEST }}
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: 📊 Check disk space (检查磁盘空间)
         run: |
           echo "构建前磁盘空间："
@@ -192,17 +201,25 @@ jobs:
          rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
          rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
          
-      - name: ⚙️ Set up SukiSU Ultra (配置 SukiSU Ultra)
+      - name: ⚙️ Set SuKiSU Ultra (设置SuKiSU Ultra)
         run: |
-         cd kernel_workspace/kernel_platform
-         curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/susfs-main/kernel/setup.sh" | bash -s susfs-main
-         cd ./KernelSU
-         KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10700)
-         echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-         export KSU_VERSION=$KSU_VERSION
-         sed -i "s/DKSU_VERSION=12800/DKSU_VERSION=${KSU_VERSION}/" kernel/Makefile
-      
-        
+            mkdir -p kernel_workspace/kernel_platform
+            cd kernel_workspace/kernel_platform
+            
+            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/susfs-main/kernel/setup.sh" -o setup.sh && bash setup.sh susfs-main
+            
+            cd KernelSU
+            KSU_VERSION=$(expr $(/usr/bin/git rev-list --count main) "+" 10700)
+            echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+            cp "${GITHUB_WORKSPACE}/.github/workflows/setup.bin" ./
+            chmod +x setup.bin
+            
+            if [ ! -f "kernel/Makefile" ]; then
+              echo "::error ::kernel/Makefile not found"
+              ls -la
+              exit 1
+            fi
+            ./setup.bin
       - name: 🔧 Set up SUSFS (配置 SUSFS)
         run: |
            cd kernel_workspace
@@ -267,7 +284,7 @@ jobs:
           echo "HMBird补丁应用完成"
 
           
-      - name: Apply lz4kd Patches
+      - name: 🔧 Apply lz4kd Patches (应用LZ4KD补丁)
         if: ${{inputs.enable_feature_y }}
         run: |
           cd kernel_workspace/kernel_platform/common
@@ -275,28 +292,24 @@ jobs:
             patch -p1 -F 3 < lz4kd.patch || true
             
       - name: 🔧 Set gki_defconfig (设置编译配置)
+        env:
+          ENABLE_B: ${{ github.event.inputs.enable_feature_b }}       
         run: |
           cd kernel_workspace/kernel_platform
           echo "CONFIG_KSU=y" >> ./common/arch/arm64/configs/gki_defconfig
-
           # Add VFS configuration settings
           echo "CONFIG_KSU_SUSFS_SUS_SU=n" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_MANUAL_HOOK=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KPM=y" >> ./common/arch/arm64/configs/gki_defconfig
-          # 启用高级压缩支持
           echo "CONFIG_CRYPTO_LZ4=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_LZ4HC=y" >> ./common/arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CRYPTO_LZ4KD=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_CRYPTO_ZSTD=y" >> ./common/arch/arm64/configs/gki_defconfig
-          
-          # 文件系统级压缩支持
           echo "CONFIG_F2FS_FS_COMPRESSION=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_F2FS_FS_LZ4=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_F2FS_FS_LZ4HC=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_F2FS_FS_ZSTD=y" >> ./common/arch/arm64/configs/gki_defconfig
-          
-          # 内核镜像压缩配置
-          echo "CONFIG_KERNEL_LZ4=y" >> ./common/arch/arm64/configs/gki_defconfig
-          
+          echo "CONFIG_KERNEL_LZ4=y" >> ./common/arch/arm64/configs/gki_defconfig          
           # Add SUSFS configuration settings
           echo "CONFIG_KSU_SUSFS=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_HAS_MAGIC_MOUNT=y" >> ./common/arch/arm64/configs/gki_defconfig
@@ -313,17 +326,17 @@ jobs:
           echo "CONFIG_KSU_SUSFS_HIDE_KSU_SUSFS_SYMBOLS=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_KSU_SUSFS_OPEN_REDIRECT=y" >> ./common/arch/arm64/configs/gki_defconfig
-
           # Add BBR
-          echo "CONFIG_TCP_CONG_ADVANCED=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_TCP_CONG_BBR=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_NET_SCH_FQ=y" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_TCP_CONG_BIC=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_TCP_CONG_CUBIC=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_TCP_CONG_WESTWOOD=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_TCP_CONG_HTCP=n" >> ./common/arch/arm64/configs/gki_defconfig
-          echo "CONFIG_DEFAULT_TCP_CONG=bbr" >> ./common/arch/arm64/configs/gki_defconfig
-          
+          if [ "$ENABLE_B" = "true" ]; then
+            echo "CONFIG_TCP_CONG_ADVANCED=y" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_TCP_CONG_BBR=y" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_NET_SCH_FQ=y" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_TCP_CONG_BIC=n" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_TCP_CONG_CUBIC=n" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_TCP_CONG_WESTWOOD=n" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_TCP_CONG_HTCP=n" >> ./common/arch/arm64/configs/gki_defconfig
+            echo "CONFIG_DEFAULT_TCP_CONG=bbr" >> ./common/arch/arm64/configs/gki_defconfig
+          fi
           #Remove check_defconfig
           sudo sed -i 's/check_defconfig//' ./common/build.config.gki
           cd common
