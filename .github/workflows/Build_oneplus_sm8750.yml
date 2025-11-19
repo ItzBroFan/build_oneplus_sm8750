@@ -115,7 +115,7 @@ jobs:
               echo 'DEFAULT_SUFFIX=-android15-8-g5a0ffb447c1d-ab13771415-4k' >> $GITHUB_ENV
               ;;
             oneplus_13)
-              echo 'DEFAULT_SUFFIX=-android15-8-gf4dc45704e54-abogki446052083-4k' >> $GITHUB_ENV
+              echo 'DEFAULT_SUFFIX=-android15-8-g0261dbe3cf7e-ab12786384-4k' >> $GITHUB_ENV
               ;;
             realme_GT7)
               echo 'DEFAULT_SUFFIX=-android15-8-gd43086512890-abogki423825152-4k' >> $GITHUB_ENV
@@ -135,7 +135,7 @@ jobs:
                 echo 'KERNEL_TIME=Fri Jul 11 22:46:09 UTC 2025' >> $GITHUB_ENV
                 ;;
               oneplus_13)
-                echo 'KERNEL_TIME=Fri Sep 19 06:13:40 UTC 2025' >> $GITHUB_ENV
+                echo 'KERNEL_TIME=Wed Dec 11 19:16:38 UTC 2024' >> $GITHUB_ENV
                 ;;
               realme_GT7)
                 echo 'KERNEL_TIME=Tue Jun 10 12:12:23 UTC 2025' >> $GITHUB_ENV
