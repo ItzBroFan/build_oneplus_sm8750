@@ -273,7 +273,7 @@ jobs:
           
       - name: ⚙️ Set SuKiSU Ultra (设置SuKiSU Ultra)
         run: |
-          cd kernel_workspace
+          cd kernel_workspace/kernel_platform/common
           curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/247f7d4aeede66b40b63957f1a84266180b3da06/kernel/setup.sh" -o setup.sh
           bash setup.sh susfs-main
           
