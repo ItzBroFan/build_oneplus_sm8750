@@ -125,7 +125,7 @@ jobs:
              oneplus_pad_2_pro)
                 DEFAULT_SUFFIX='-android15-8-g096cdb6ecefc-ab14358676-4k'
               ;;
-            oneplus_ace5_ultra | )
+            oneplus_ace5_ultra)
                 DEFAULT_SUFFIX='-android15-8-ge6068c2aa11d-abogki454747580-4k'
               ;;
             oneplus_13 | oneplus_13t | oneplus_ace5_pro | oneplus_ace_6 | realme_GT7 | realme_GT7pro_Speed | realme_GT8)
