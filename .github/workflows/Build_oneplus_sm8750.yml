@@ -65,13 +65,6 @@ on:
         default: true
         type: boolean
       
-      enable_serialid_check:
-        description: "开启SerialID校验"
-        required: true
-        default: true
-        type: boolean
-
-       
 
 
 jobs:
@@ -88,7 +81,6 @@ jobs:
       ENABLE_ADIOS:           ${{ github.event.inputs.enable_Adios }}
       ENABLE_SCX:             ${{ github.event.inputs.enable_scx }}
       ENABLE_BBG:             ${{ github.event.inputs.enable_bbg }}
-      ENABLE_SERIALID_CHECK:  ${{ github.event.inputs.enable_serialid_check }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -377,23 +369,6 @@ jobs:
             ccache -sv
           else
             echo "未命中仓库缓存，也未找到公共缓存，将从空缓存开始构建"
-          fi
-      
-      - name: 🛠 Set SerialID Check (添加SerialID校验)
-        if: ${{ env.ENABLE_SERIALID_CHECK == 'true' }}
-        working-directory: kernel_workspace/common
-        run: |
-          if grep -q 'SOC_SN_CHECK' init/main.c; then
-            echo "main.c 已包含, 跳过"
-            exit 0
-          else
-            cp "${GITHUB_WORKSPACE}/.github/workflows/tools/serialid_check.c" ./
-            LINE=$(grep -n '^#include' init/main.c | tail -n 1 | cut -d: -f1)
-            head -n "$LINE" init/main.c > init/main.c.patched
-            cat serialid_check.c >> init/main.c.patched
-            tail -n +$((LINE+1)) init/main.c >> init/main.c.patched
-            mv init/main.c.patched init/main.c
-            echo "已自动插入 serialid_check.c 到 main.c"
           fi
 
       - name: 🔧 Add Re-Kernel Support (添加 Re-Kernel 支持)
