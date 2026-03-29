@@ -377,7 +377,7 @@ jobs:
         run: |
           echo "开始添加 Re-Kernel 支持..."
         
-          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/tools/Re-Kernel_Support.patch"
+          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/Re-Kernel_Support.patch"
         
           if [ ! -f "$PATCH_FILE" ]; then
             echo "::error::未找到 Re-Kernel 补丁文件：$PATCH_FILE"
@@ -412,7 +412,7 @@ jobs:
         run: |
           echo "开始添加 LZ4 ARM64 硬件加速支持..."
           
-          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/tools/lz4armv8_support.patch"
+          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/lz4armv8_support.patch"
           
           # 检查补丁文件是否存在
           if [ ! -f "$PATCH_FILE" ]; then
@@ -474,7 +474,7 @@ jobs:
         working-directory: kernel_workspace/common
         run: |
           echo "开始添加 ADIOS I/O 调度器支持..."
-          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/tools/adios_ioscheduler.patch"
+          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/adios_ioscheduler.patch"
           if [ ! -f "$PATCH_FILE" ]; then
             echo "::error::未找到 ADIOS I/O 调度器补丁文件"
             exit 1
