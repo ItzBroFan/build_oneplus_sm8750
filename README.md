@@ -64,10 +64,10 @@
 
 | 工作流 | 说明 | 适用场景 |
 |--------|------|----------|
-| [Build_oneplus_sm8750](.github/workflows/Build_oneplus_sm8750.yml) | 完整内核编译（含 KSU/SUSFS 等） |
+| [Build_oneplus_sm8750](.github/workflows/Build_oneplus_sm8750.yml) | 完整内核编译（含 KSU/SUSFS 等） | 集成KSU获取ROOT |
 | [Build_kernel_only](.github/workflows/Build_kernel_only.yml) | 无 Root 官方源码编译 | 仅需官方内核，不集成 KSU |
 | [clean-caches](.github/workflows/clean-caches.yml) | 清理 ccache 缓存 | 缓存异常或需要重新编译时 |
-| [Clear_All_Workflow](.github/workflows/Clear_All_Workflow.yml) | 清理工作流运行记录 |
+| [Clear_All_Workflow](.github/workflows/Clear_All_Workflow.yml) | 清理工作流运行记录 | 保证Action界面整洁
 
 ---
 
