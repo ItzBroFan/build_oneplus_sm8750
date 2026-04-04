@@ -377,24 +377,16 @@ jobs:
           else
             echo "未命中仓库缓存，也未找到公共缓存，将从空缓存开始构建"
           fi
-
-      - name: 🔧 Add Re-Kernel Support (添加 Re-Kernel 支持)
+      
+      - name: 🔧 Add Re-Kernel Support (添加Re-Kernel支持)
         if: ${{ env.ENABLE_REKERNEL == 'true' }}
         working-directory: kernel_workspace/common
         run: |
           PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/Re-Kernel_Support.patch"
-          [ ! -f "$PATCH_FILE" ] && echo "::error::未找到补丁" && exit 1
-          
-          grep -q "CONFIG_REKERNEL" arch/arm64/configs/gki_defconfig 2>/dev/null && { echo "✓ 已存在，跳过"; exit 0; }
-          
-          cp "$PATCH_FILE" .
-          patch -p1 -N --ignore-whitespace -F 3 < Re-Kernel_Support.patch 2>&1 | tee /tmp/rk.log || {
-            echo "::warning::Re-Kernel 补丁应用失败，尝试强制忽略冲突..."
-            patch -p1 -N --force --ignore-whitespace < Re-Kernel_Support.patch || true
-          }
+          cp "$PATCH_FILE" ./
+          patch -p1 -N --ignore-whitespace -F 3 < Re-Kernel_Support.patch 2>&1 | tee /tmp/rk.log || true
           rm -f Re-Kernel_Support.patch
-          
-          echo "CONFIG_REKERNEL=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_REKERNEL=m" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_REKERNEL_NETWORK=y" >> arch/arm64/configs/gki_defconfig
           echo "✅ Re-Kernel配置已注入"
 
@@ -542,7 +534,7 @@ jobs:
           else
             echo "未启用SUSFS 跳过SUSFS配置"
           fi
-          
+
           echo "CONFIG_TMPFS_XATTR=y" >> ./common/arch/arm64/configs/gki_defconfig
           echo "CONFIG_TMPFS_POSIX_ACL=y" >> ./common/arch/arm64/configs/gki_defconfig
 
@@ -711,7 +703,6 @@ jobs:
                   deleted++;
                 }
               }
-
               if (caches.length < 100) {
                 break;
               }
