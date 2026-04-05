@@ -103,6 +103,7 @@ jobs:
         run: pip install httpx beautifulsoup4
       
       - name: 🔗 Get OTA Download URL (获取OTA下载链接)
+        id: get_ota
         run: |
           python3 << 'PYEOF'
           import httpx
