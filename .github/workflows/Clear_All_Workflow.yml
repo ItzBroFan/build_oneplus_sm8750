@@ -10,6 +10,8 @@ on:
         default: 'Build_oneplus_sm8750'
         options:
           - "Build_oneplus_sm8750"
+          - "OTA镜像分区提取"
+          - "清理全部ccache缓存"
 
       count:
         description: '最多清理的运行次数'
