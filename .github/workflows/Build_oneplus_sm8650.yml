@@ -143,11 +143,11 @@ jobs:
             tar xzf common.tar.gz && 
             mv "android_kernel_common_oneplus_sm8650-oneplus-${REPO_MANIFEST}" common
           elif [ "${KERNEL_VERSION}" = "6.1.115" ] || [ "${KERNEL_VERSION}" = "6.1.134" ]; then
-            aria2c -s16 -x16 -k1M aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_oneplus_mt6989/archive/refs/heads/oneplus/${REPO_MANIFEST}.tar.gz -o common.tar.gz
+            aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_oneplus_mt6989/archive/refs/heads/oneplus/${REPO_MANIFEST}.tar.gz -o common.tar.gz
             tar xzf common.tar.gz && 
             mv "android_kernel_oneplus_mt6989-oneplus-${REPO_MANIFEST}" common
           elif [ "${KERNEL_VERSION}" = "6.1.128" ]; then
-            aria2c -s16 -x16 -k1M aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_oneplus_mt6897/archive/refs/heads/oneplus/${REPO_MANIFEST}.tar.gz -o common.tar.gz
+            aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_oneplus_mt6897/archive/refs/heads/oneplus/${REPO_MANIFEST}.tar.gz -o common.tar.gz
             tar xzf common.tar.gz && 
             mv "android_kernel_oneplus_mt6897-oneplus-${REPO_MANIFEST}" common
           fi
