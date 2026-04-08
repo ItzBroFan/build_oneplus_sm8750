@@ -92,16 +92,16 @@ jobs:
             '6.1.75')
               echo "REPO_MANIFEST=sm8650_u_14.1.0_onepluspad_pro" >> $GITHUB_ENV
               ;;
-            '6.1.115')
+            '6.1.115(天玑)')
               echo "REPO_MANIFEST=mt6989_v_15.0.2_ace5_race" >> $GITHUB_ENV
               ;;
             '6.1.118')
               echo "REPO_MANIFEST=sm8650_v_15.0.0_oneplus12" >> $GITHUB_ENV
               ;;
-            '6.1.128')
+            '6.1.128(天玑)')
               echo "REPO_MANIFEST=mt6897_v_15.0.0_oneplus_pad" >> $GITHUB_ENV
               ;;
-            '6.1.134')
+            '6.1.134(天玑)')
               echo "REPO_MANIFEST=mt6989_b_16.0.0_ace5_race" >> $GITHUB_ENV
               ;;
             '6.1.141')
@@ -136,7 +136,7 @@ jobs:
           sudo apt purge man-db &&
           sudo rm -rf /var/lib/man-db/auto-update &&
           sudo apt update &&
-          sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev dos2unix ccache p7zip-full zstd &
+          sudo apt-get install -y --no-install-recommends binutils python-is-python3 libssl-dev libelf-dev dos2unix ccache p7zip-full zstd &&
           echo "正在克隆Common源码仓库..."
           if [ "${KERNEL_VERSION}" = "6.1.57" ] || [ "${KERNEL_VERSION}" = "6.1.75" ] || [ "${KERNEL_VERSION}" = "6.1.118" ] || [ "${KERNEL_VERSION}" = "6.1.141" ]; then
             aria2c -s16 -x16 -k1M https://github.com/OnePlusOSS/android_kernel_common_oneplus_sm8650/archive/refs/heads/oneplus/${REPO_MANIFEST}.tar.gz -o common.tar.gz
@@ -379,7 +379,7 @@ jobs:
         if: ${{ env.ENABLE_REKERNEL == 'true' }}
         working-directory: kernel_workspace/common
         run: |
-          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/Re-Kernel_Support.patch"
+          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/tools/Re-Kernel_Support.patch"
           cp "$PATCH_FILE" ./
           patch -p1 -N --ignore-whitespace -F 3 < Re-Kernel_Support.patch 2>&1 | tee /tmp/rk.log || true
           rm -f Re-Kernel_Support.patch
@@ -391,7 +391,11 @@ jobs:
         working-directory: kernel_workspace/common
         run: |
           echo "开始添加 ADIOS I/O 调度器支持..."
-          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/adios_ioscheduler_6.1.patch"
+          if [ "${{ env.KERNEL_VERSION }}" = "6.1.115(天玑)" ] || [ "${{ env.KERNEL_VERSION }}" = "6.1.134(天玑)" ]; then
+            PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/tools/adios_ioscheduler_6.1_mt6989.patch"
+          else
+            PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/tools/adios_ioscheduler_6.1.patch"
+          fi
           if [ ! -f "$PATCH_FILE" ]; then
             echo "::error::未找到 ADIOS I/O 调度器补丁文件"
             exit 1
@@ -399,17 +403,10 @@ jobs:
           if [ -f "block/adios.c" ]; then
             echo "✓ ADIOS I/O 调度器文件已存在，跳过应用补丁"
           else
-            cp "$PATCH_FILE" ./adios_ioscheduler_6.1.patch
+            cp "$PATCH_FILE" ./adios.patch
             echo "正在应用 ADIOS I/O 调度器补丁..."
-            if patch -p1 --ignore-whitespace -F 3 < adios_ioscheduler_6.1.patch 2>&1 | tee /tmp/adios_patch.log; then
-              echo "✓ ADIOS I/O 调度器补丁应用成功"
-            else
-              echo "::warning::ADIOS 补丁应用出现问题"
-              if grep -q "malformed patch" /tmp/adios_patch.log; then
-                patch -p1 --force --ignore-whitespace < adios_ioscheduler_6.1.patch || true
-              fi
-            fi
-            rm -f adios_ioscheduler_6.1.patch
+            patch -p1 --ignore-whitespace -F 3 < adios.patch
+            rm -f adios.patch
           fi
           if ! grep -q "CONFIG_MQ_IOSCHED_ADIOS" arch/arm64/configs/gki_defconfig; then
             echo "CONFIG_MQ_IOSCHED_ADIOS=y" >> arch/arm64/configs/gki_defconfig
