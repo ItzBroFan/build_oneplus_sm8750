@@ -379,7 +379,7 @@ jobs:
         if: ${{ env.ENABLE_REKERNEL == 'true' }}
         working-directory: kernel_workspace/common
         run: |
-          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/tools/Re-Kernel_Support.patch"
+          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/Re-Kernel_Support.patch"
           cp "$PATCH_FILE" ./
           patch -p1 -N --ignore-whitespace -F 3 < Re-Kernel_Support.patch 2>&1 | tee /tmp/rk.log || true
           rm -f Re-Kernel_Support.patch
@@ -392,9 +392,9 @@ jobs:
         run: |
           echo "开始添加 ADIOS I/O 调度器支持..."
           if [ "${{ env.KERNEL_VERSION }}" = "6.1.115(天玑)" ] || [ "${{ env.KERNEL_VERSION }}" = "6.1.134(天玑)" ]; then
-            PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/tools/adios_ioscheduler_6.1_mt6989.patch"
+            PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/adios_ioscheduler_6.1_mt6989.patch"
           else
-            PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/tools/adios_ioscheduler_6.1.patch"
+            PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/adios_ioscheduler_6.1.patch"
           fi
           if [ ! -f "$PATCH_FILE" ]; then
             echo "::error::未找到 ADIOS I/O 调度器补丁文件"
