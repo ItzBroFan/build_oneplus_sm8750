@@ -409,7 +409,7 @@ jobs:
           if [ "${{ env.KERNEL_VERSION }}" = "6.1.115(天玑)" ]; then
             PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/adios_ioscheduler_6.1_mt6989.patch"
           elif [ "${{ env.KERNEL_VERSION }}" = "6.1.57" ] || [ "${{ env.KERNEL_VERSION }}" = "6.1.75" ]; then
-            PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/adios_ioscheduler_6.1_fixed.patch"
+            PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/adios_ioscheduler_6.1_old.patch"
           else
             PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/adios_ioscheduler_6.1.patch"
           fi
