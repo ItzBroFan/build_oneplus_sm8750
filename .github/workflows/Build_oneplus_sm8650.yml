@@ -378,7 +378,6 @@ jobs:
 
       - name: 🔧 Add Re-Kernel Support (添加Re-Kernel支持)
         if: ${{ env.ENABLE_REKERNEL == 'true' }}
-        working-directory: kernel_workspace/common
         run: |
           cd kernel_workspace
           VERSION=$(awk -F'=' '/^VERSION[ \t]*=/ {gsub(/ /,"",$2); print $2}' common/Makefile)
