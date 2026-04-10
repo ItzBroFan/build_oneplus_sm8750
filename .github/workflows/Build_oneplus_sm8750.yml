@@ -382,13 +382,28 @@ jobs:
         if: ${{ env.ENABLE_REKERNEL == 'true' }}
         working-directory: kernel_workspace/common
         run: |
-          PATCH_FILE="${GITHUB_WORKSPACE}/.github/workflows/Bin/Re-Kernel_Support.patch"
-          cp "$PATCH_FILE" ./
-          patch -p1 -N --ignore-whitespace -F 3 < Re-Kernel_Support.patch 2>&1 | tee /tmp/rk.log || true
-          rm -f Re-Kernel_Support.patch
-          echo "CONFIG_REKERNEL=m" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_REKERNEL_NETWORK=y" >> arch/arm64/configs/gki_defconfig
-          echo "✅ Re-Kernel配置已注入"
+          cd kernel_workspace
+          VERSION=$(awk -F'=' '/^VERSION[ \t]*=/ {gsub(/ /,"",$2); print $2}' common/Makefile)
+          PATCHLEVEL=$(awk -F'=' '/^PATCHLEVEL[ \t]*=/ {gsub(/ /,"",$2); print $2}' common/Makefile)
+          echo "内核版本: ${VERSION}.${PATCHLEVEL}"
+          [ ! -d "Re-Kernel" ] && git clone --depth 1 https://github.com/Sakion-Team/Re-Kernel.git
+          RE_DIR="${GITHUB_WORKSPACE}/kernel_workspace/Re-Kernel/LKM-Source"
+          cd common
+          grep -q 'source "drivers/rekernel/Kconfig"' drivers/Kconfig || \
+            sed -i '/endmenu/i source "drivers/rekernel/Kconfig"' drivers/Kconfig
+          grep -q 'obj-$(CONFIG_REKERNEL)' drivers/Makefile || \
+            printf '\n# Re-Kernel\nobj-$(CONFIG_REKERNEL) += rekernel/\n' >> drivers/Makefile
+          mkdir -p drivers/rekernel
+          cp ${RE_DIR}/* drivers/rekernel/
+          TARGET="KERNEL_${VERSION}_${PATCHLEVEL}"
+          if grep -q "$TARGET" drivers/rekernel/rekernel.h; then
+            sed -i "s|^[[:space:]]*//[[:space:]]*#define[[:space:]]\+$TARGET|#define $TARGET|" drivers/rekernel/rekernel.h
+            echo "CONFIG_REKERNEL=m" >> arch/arm64/configs/gki_defconfig
+            echo "CONFIG_REKERNEL_NETWORK=y" >> arch/arm64/configs/gki_defconfig
+            echo "✅ Re-Kernel 配置完成"
+          else
+            echo "⚠️ 不支持的内核版本: $TARGET"
+          fi
 
       - name: 🔧 Add adios_ioscheduler (添加 adios_ioscheduler 支持)
         if: ${{ env.ENABLE_ADIOS == 'true' }}
@@ -724,9 +739,14 @@ jobs:
          name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_${{ env.KSU_TYPE }}
          path: ./AnyKernel3/*
 
+  upload_rekernel:
+    name: Upload Re-Kernel Module
+    if: ${{ github.event.inputs.enable_ReKernel == 'true' }}
+    needs: build_matrix
+    runs-on: ubuntu-latest
+    steps:
       - name: 🔎 Find Re-Kernel module zip (查找Re-Kernel最新模块并下载)
         id: download-rekernel
-        if: ${{ env.ENABLE_REKERNEL == 'true' }}
         uses: actions/github-script@v8
         env:
           KERNEL_MAJOR: "6.6"
@@ -765,8 +785,6 @@ jobs:
             core.setOutput('tag-name', release.data.tag_name);
 
       - name: 📥 Download Re-Kernel module (下载 Re-Kernel 模块)
-        if: ${{ env.ENABLE_REKERNEL == 'true' }}
-        working-directory: kernel_workspace
         env:
           ASSET_NAME: ${{ steps.download-rekernel.outputs.asset-name }}
           DOWNLOAD_URL: ${{ steps.download-rekernel.outputs.download-url }}
@@ -785,9 +803,7 @@ jobs:
           ls -lR "$ARTIFACT_NAME"
 
       - name: 📤 Upload Re-Kernel module (上传 Re-Kernel 模块)
-        if: ${{ env.ENABLE_REKERNEL == 'true' }}
         uses: actions/upload-artifact@v5
         with:
           name: Re-Kernel-v${{ steps.download-rekernel.outputs.tag-name }}-6.6
-          path: kernel_workspace/Re-Kernel-v${{ steps.download-rekernel.outputs.tag-name }}-6.6
-          
+          path: Re-Kernel-v${{ steps.download-rekernel.outputs.tag-name }}-6.6
